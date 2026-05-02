@@ -1,3 +1,5 @@
+import pandas as pd
+
 from PySide6.QtWidgets import (
     QWidget,
     QLabel,
@@ -8,22 +10,30 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QGridLayout,
     QTableWidget,
+    QMessageBox,
+    QFileDialog,
 )
 
 from tabu_scripts.data import TEMPS, available_conductors
+from tabu_scripts.engine import solve_one_temperature
+from tabu_scripts.output import (
+    build_one_temperature_dataframe,
+    format_dataframe_for_export,
+)
+
 from gui.utils.parsing import parse_series
-from gui.utils.table_helpers import populate_table_widget
+from gui.utils.table_helpers import (
+    populate_table_widget,
+    translate_headers,
+    blank_row_df,
+)
 
 
 class SuspensionPage(QWidget):
-    def __init__(
-        self,
-        home_callback,
-        solve_one_callback,
-        solve_all_callback,
-        export_callback,
-    ):
+    def __init__(self, home_callback):
         super().__init__()
+
+        self.current_display_df = None
 
         main_layout = QVBoxLayout(self)
 
@@ -59,13 +69,13 @@ class SuspensionPage(QWidget):
         self.summary_label.setStyleSheet("font-size: 14px; font-weight: bold;")
 
         self.solve_one_button = QPushButton("Επίλυση μίας θερμοκρασίας")
-        self.solve_one_button.clicked.connect(solve_one_callback)
+        self.solve_one_button.clicked.connect(self.solve_one_temperature_clicked)
 
         self.solve_all_button = QPushButton("Επίλυση όλων των θερμοκρασιών")
-        self.solve_all_button.clicked.connect(solve_all_callback)
+        self.solve_all_button.clicked.connect(self.solve_all_temperatures_clicked)
 
         self.export_button = QPushButton("Εξαγωγή αποτελεσμάτων σε XLSX")
-        self.export_button.clicked.connect(export_callback)
+        self.export_button.clicked.connect(self.export_current_results)
         self.export_button.setEnabled(False)
 
         left_layout.addWidget(QLabel("Ανοίγματα (m)"), 0, 0)
@@ -116,3 +126,95 @@ class SuspensionPage(QWidget):
 
     def show_dataframe(self, df):
         populate_table_widget(self.table, df)
+
+    def solve_one_temperature_clicked(self):
+        try:
+            spans, heights, conductor, temperature_C = self.get_inputs()
+
+            result = solve_one_temperature(
+                spans=spans,
+                heights=heights,
+                conductor_name=conductor,
+                temperature_C=temperature_C,
+            )
+
+            df = build_one_temperature_dataframe(result)
+            df_fmt = format_dataframe_for_export(df)
+            df_fmt = translate_headers(df_fmt)
+
+            self.current_display_df = df_fmt.copy()
+            self.show_dataframe(df_fmt)
+            self.set_export_enabled(True)
+
+            ba_short = result["ba_label"].replace("BA ", "")
+            self.set_summary_text(
+                f"BA: {ba_short} ({result['ruling_span_m']:.2f} m)"
+            )
+
+        except Exception as ex:
+            QMessageBox.critical(self, "Error", str(ex))
+
+    def solve_all_temperatures_clicked(self):
+        try:
+            spans, heights, conductor, _ = self.get_inputs()
+
+            formatted_groups = []
+            first_result = None
+
+            for i, temp in enumerate(TEMPS):
+                result = solve_one_temperature(
+                    spans=spans,
+                    heights=heights,
+                    conductor_name=conductor,
+                    temperature_C=float(temp),
+                )
+
+                if first_result is None:
+                    first_result = result
+
+                df = build_one_temperature_dataframe(result)
+                df_fmt = format_dataframe_for_export(df)
+                df_fmt = translate_headers(df_fmt)
+
+                formatted_groups.append(df_fmt)
+
+                if i < len(TEMPS) - 1:
+                    formatted_groups.append(blank_row_df(df_fmt.columns))
+
+            all_df_fmt = pd.concat(formatted_groups, ignore_index=True)
+
+            self.current_display_df = all_df_fmt.copy()
+            self.show_dataframe(all_df_fmt)
+            self.set_export_enabled(True)
+
+            ba_short = first_result["ba_label"].replace("BA ", "")
+            self.set_summary_text(
+                f"BA: {ba_short} ({first_result['ruling_span_m']:.2f} m)"
+            )
+
+        except Exception as ex:
+            QMessageBox.critical(self, "Error", str(ex))
+
+    def export_current_results(self):
+        try:
+            if self.current_display_df is None or len(self.current_display_df) == 0:
+                raise ValueError("Δεν υπάρχουν αποτελέσματα προς εξαγωγή.")
+
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Save XLSX",
+                "results.xlsx",
+                "Excel Files (*.xlsx)",
+            )
+
+            if not file_path:
+                return
+
+            if not file_path.lower().endswith(".xlsx"):
+                file_path += ".xlsx"
+
+            self.current_display_df.to_excel(file_path, index=False)
+            QMessageBox.information(self, "Export", "Η εξαγωγή ολοκληρώθηκε επιτυχώς.")
+
+        except Exception as ex:
+            QMessageBox.critical(self, "Error", str(ex))
