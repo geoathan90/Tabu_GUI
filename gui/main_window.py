@@ -23,6 +23,20 @@ from engine import solve_one_temperature
 from output import build_one_temperature_dataframe, format_dataframe_for_export
 
 
+GREEK_HEADERS = {
+    "temperature_C": "Θερμοκρασία",
+    "span_m": "Άνοιγμα",
+    "height_m": "Υψομετρική",
+    "T_ref_kg": "Τάνυση με κατακόρυφους μονωτήρες",
+    "H_solution_kg": "Τάνυση με αγωγούς στις τροχαλίες",
+    "sag_eq_m": "Βέλος με κατακόρυφους μονωτήρες",
+    "sag_alt_m": "Βέλος με αγωγούς στις τροχαλίες",
+    "diorthosi_geometric_m": "Γεωμετρική Διόρθωση",
+    "diorthosi_elastic_m": "Ελαστική Διόρθωση",
+    "diorthosi_combined_m": "Συνολική Διόρθωση",
+}
+
+
 def parse_series(raw_text):
     """
     Parse pasted numeric text into a NumPy array.
@@ -53,6 +67,21 @@ def parse_series(raw_text):
             values.append(float(part))
 
     return np.asarray(values, dtype=float)
+
+
+def translate_headers(df):
+    """
+    Return a copy of the DataFrame with Greek column headers.
+    """
+    return df.rename(columns=GREEK_HEADERS)
+
+
+def blank_row_df(columns):
+    """
+    Build a one-row DataFrame of empty strings, used as a spacer between
+    temperature groups in the all-temperatures view.
+    """
+    return pd.DataFrame([{col: "" for col in columns}])
 
 
 class MainWindow(QMainWindow):
@@ -86,9 +115,6 @@ class MainWindow(QMainWindow):
         title = QLabel("Επιλογή Ενότητας")
         title.setStyleSheet("font-size: 24px; font-weight: bold;")
 
-        subtitle = QLabel("Επιλέξτε ποια ενότητα θέλετε να ανοίξετε.")
-        subtitle.setStyleSheet("font-size: 14px;")
-
         btn_alignment = QPushButton("Βέλη Ευθυγραμμίας")
         btn_alignment.setMinimumHeight(60)
         btn_alignment.clicked.connect(self.open_alignment_page)
@@ -99,7 +125,6 @@ class MainWindow(QMainWindow):
 
         layout.addStretch()
         layout.addWidget(title)
-        layout.addWidget(subtitle)
         layout.addSpacing(20)
         layout.addWidget(btn_alignment)
         layout.addWidget(btn_terminal)
@@ -160,33 +185,33 @@ class MainWindow(QMainWindow):
         for t in TEMPS:
             self.temp_combo.addItem(str(int(t)))
 
-        self.solve_one_button = QPushButton("Solve one temperature")
-        self.solve_one_button.clicked.connect(self.solve_one_temperature_clicked)
-
-        self.solve_all_button = QPushButton("Solve all temperatures")
-        self.solve_all_button.clicked.connect(self.solve_all_temperatures_clicked)
-
-        self.export_button = QPushButton("Export current results to XLSX")
-        self.export_button.clicked.connect(self.export_current_results)
-        self.export_button.setEnabled(False)
-
         self.summary_label = QLabel("")
         self.summary_label.setStyleSheet("font-size: 14px; font-weight: bold;")
 
+        self.solve_one_button = QPushButton("Επίλυση μίας θερμοκρασίας")
+        self.solve_one_button.clicked.connect(self.solve_one_temperature_clicked)
+
+        self.solve_all_button = QPushButton("Επίλυση όλων των θερμοκρασιών")
+        self.solve_all_button.clicked.connect(self.solve_all_temperatures_clicked)
+
+        self.export_button = QPushButton("Εξαγωγή αποτελεσμάτων σε XLSX")
+        self.export_button.clicked.connect(self.export_current_results)
+        self.export_button.setEnabled(False)
+
         left_layout.addWidget(QLabel("Ανοίγματα (m)"), 0, 0)
         left_layout.addWidget(self.spans_edit, 1, 0)
+        left_layout.addWidget(self.summary_label, 2, 0)
 
-        left_layout.addWidget(QLabel("Υψομετρικές Διαφορές (m)"), 2, 0)
-        left_layout.addWidget(self.heights_edit, 3, 0)
+        left_layout.addWidget(QLabel("Υψομετρικές Διαφορές (m)"), 3, 0)
+        left_layout.addWidget(self.heights_edit, 4, 0)
 
-        left_layout.addWidget(QLabel("Τύπος Αγωγού"), 4, 0)
-        left_layout.addWidget(self.conductor_combo, 5, 0)
+        left_layout.addWidget(QLabel("Τύπος Αγωγού"), 5, 0)
+        left_layout.addWidget(self.conductor_combo, 6, 0)
 
-        left_layout.addWidget(QLabel("Θερμοκρασία (°C)"), 6, 0)
-        left_layout.addWidget(self.temp_combo, 7, 0)
+        left_layout.addWidget(QLabel("Θερμοκρασία (°C)"), 7, 0)
+        left_layout.addWidget(self.temp_combo, 8, 0)
 
-        left_layout.addWidget(self.solve_one_button, 8, 0)
-        left_layout.addWidget(self.summary_label, 9, 0)
+        left_layout.addWidget(self.solve_one_button, 9, 0)
         left_layout.addWidget(self.solve_all_button, 10, 0)
         left_layout.addWidget(self.export_button, 11, 0)
 
@@ -241,13 +266,15 @@ class MainWindow(QMainWindow):
 
             df = build_one_temperature_dataframe(result)
             df_fmt = format_dataframe_for_export(df)
+            df_fmt = translate_headers(df_fmt)
 
             self.current_display_df = df_fmt.copy()
             self.populate_table(df_fmt)
             self.export_button.setEnabled(True)
 
+            ba_short = result["ba_label"].replace("BA ", "")
             self.summary_label.setText(
-                f"BA: {result['ba_label']} ({result['ruling_span_m']:.2f} m)"
+                f"BA: {ba_short} ({result['ruling_span_m']:.2f} m)"
             )
 
         except Exception as ex:
@@ -257,10 +284,10 @@ class MainWindow(QMainWindow):
         try:
             spans, heights, conductor, _ = self.read_inputs()
 
-            frames = []
+            formatted_groups = []
             first_result = None
 
-            for temp in TEMPS:
+            for i, temp in enumerate(TEMPS):
                 result = solve_one_temperature(
                     spans=spans,
                     heights=heights,
@@ -272,17 +299,23 @@ class MainWindow(QMainWindow):
                     first_result = result
 
                 df = build_one_temperature_dataframe(result)
-                frames.append(df)
+                df_fmt = format_dataframe_for_export(df)
+                df_fmt = translate_headers(df_fmt)
 
-            all_df = pd.concat(frames, ignore_index=True)
-            all_df_fmt = format_dataframe_for_export(all_df)
+                formatted_groups.append(df_fmt)
+
+                if i < len(TEMPS) - 1:
+                    formatted_groups.append(blank_row_df(df_fmt.columns))
+
+            all_df_fmt = pd.concat(formatted_groups, ignore_index=True)
 
             self.current_display_df = all_df_fmt.copy()
             self.populate_table(all_df_fmt)
             self.export_button.setEnabled(True)
 
+            ba_short = first_result["ba_label"].replace("BA ", "")
             self.summary_label.setText(
-                f"BA: {first_result['ba_label']} ({first_result['ruling_span_m']:.2f} m)"
+                f"BA: {ba_short} ({first_result['ruling_span_m']:.2f} m)"
             )
 
         except Exception as ex:
