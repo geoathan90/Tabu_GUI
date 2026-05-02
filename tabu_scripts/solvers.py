@@ -45,8 +45,8 @@ array([...])
 
 import numpy as np
 
-from formulas import total_length
-from forward_sweep import forward_sweep_from_H0
+from tabu_scripts.formulas import total_length
+from tabu_scripts.forward_sweep import forward_sweep_from_H0
 
 def total_length_error(spans, heights, H0, w, target_total_length):
     """

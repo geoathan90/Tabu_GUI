@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QTableWidget,
 )
 
-from data import TEMPS, available_conductors
+from tabu_scripts.data import TEMPS, available_conductors
 from gui.utils.parsing import parse_series
 from gui.utils.table_helpers import populate_table_widget
 

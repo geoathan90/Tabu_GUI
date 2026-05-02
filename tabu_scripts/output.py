@@ -33,7 +33,7 @@ Typical usage
 import numpy as np
 import pandas as pd
 
-from formulas import increase, sags, tension_correction_terms
+from tabu_scripts.formulas import increase, sags, tension_correction_terms
 
 
 def build_one_temperature_dataframe(result):

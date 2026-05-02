@@ -1,8 +1,8 @@
 import numpy as np
 
-from data import TEMPS, select_conductor_data
-from formulas import ruling_span_info
-from solvers import solve_horizontal_tensions_legacy
+from tabu_scripts.data import TEMPS, select_conductor_data
+from tabu_scripts.formulas import ruling_span_info
+from tabu_scripts.solvers import solve_horizontal_tensions_legacy
 
 
 def solve_one_temperature(

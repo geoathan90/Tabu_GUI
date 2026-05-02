@@ -8,6 +8,7 @@ class TerminalPage(QWidget):
         layout = QVBoxLayout(self)
 
         home_button = QPushButton("HOME")
+        home_button.setFixedWidth(260)
         home_button.clicked.connect(home_callback)
 
         title = QLabel("Τερματικά Βέλη")

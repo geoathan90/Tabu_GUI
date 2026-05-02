@@ -7,8 +7,8 @@ from PySide6.QtWidgets import (
     QFileDialog,
 )
 
-from engine import solve_one_temperature
-from output import build_one_temperature_dataframe, format_dataframe_for_export
+from tabu_scripts.engine import solve_one_temperature
+from tabu_scripts.output import build_one_temperature_dataframe, format_dataframe_for_export
 
 from gui.pages.home_page import HomePage
 from gui.pages.suspension_page import SuspensionPage

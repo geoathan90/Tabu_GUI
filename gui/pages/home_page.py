@@ -10,17 +10,19 @@ class HomePage(QWidget):
         title = QLabel("Επιλογή Ενότητας")
         title.setStyleSheet("font-size: 24px; font-weight: bold;")
 
-        btn_alignment = QPushButton("Βέλη Ευθυγραμμίας")
-        btn_alignment.setMinimumHeight(60)
-        btn_alignment.clicked.connect(open_suspension_callback)
+        btn_suspension = QPushButton("Βέλη Ευθυγραμμίας")
+        btn_suspension.setMinimumHeight(60)
+        btn_suspension.setFixedWidth(260)
+        btn_suspension.clicked.connect(open_suspension_callback)
 
         btn_terminal = QPushButton("Τερματικά Βέλη")
         btn_terminal.setMinimumHeight(60)
+        btn_suspension.setFixedWidth(260)
         btn_terminal.clicked.connect(open_terminal_callback)
 
         layout.addStretch()
         layout.addWidget(title)
         layout.addSpacing(20)
-        layout.addWidget(btn_alignment)
+        layout.addWidget(btn_suspension)
         layout.addWidget(btn_terminal)
         layout.addStretch()
