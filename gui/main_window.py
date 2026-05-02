@@ -1,3 +1,4 @@
+
 from PySide6.QtWidgets import QMainWindow, QStackedWidget
 
 from gui.pages.home_page import HomePage
