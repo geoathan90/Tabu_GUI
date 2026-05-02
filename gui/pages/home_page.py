@@ -9,6 +9,7 @@ class HomePage(QWidget):
 
         title = QLabel("Επιλογή Ενότητας")
         title.setStyleSheet("font-size: 24px; font-weight: bold;")
+        title.setAlignment(Qt.AlignCenter)
 
         btn_suspension = QPushButton("Βέλη Ευθυγραμμίας")
         btn_suspension.setMinimumHeight(60)
@@ -21,8 +22,8 @@ class HomePage(QWidget):
         btn_terminal.clicked.connect(open_terminal_callback)
 
         layout.addStretch()
-        layout.addWidget(title)
+        layout.addWidget(title, alignment=Qt.AlignHCenter)
         layout.addSpacing(20)
-        layout.addWidget(btn_suspension)
-        layout.addWidget(btn_terminal)
+        layout.addWidget(btn_suspension, alignment=Qt.AlignHCenter)
+        layout.addWidget(btn_terminal, alignment=Qt.AlignHCenter)
         layout.addStretch()
