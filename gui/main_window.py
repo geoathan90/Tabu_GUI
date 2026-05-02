@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
 
 from tabu_scripts.engine import solve_one_temperature
 from tabu_scripts.output import build_one_temperature_dataframe, format_dataframe_for_export
+from tabu_scripts.data import TEMPS
 
 from gui.pages.home_page import HomePage
 from gui.pages.suspension_page import SuspensionPage
@@ -94,8 +95,6 @@ class MainWindow(QMainWindow):
 
             formatted_groups = []
             first_result = None
-
-            from data import TEMPS
 
             for i, temp in enumerate(TEMPS):
                 result = solve_one_temperature(

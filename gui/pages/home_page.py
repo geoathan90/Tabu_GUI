@@ -17,7 +17,7 @@ class HomePage(QWidget):
 
         btn_terminal = QPushButton("Τερματικά Βέλη")
         btn_terminal.setMinimumHeight(60)
-        btn_suspension.setFixedWidth(260)
+        btn_terminal.setFixedWidth(260)
         btn_terminal.clicked.connect(open_terminal_callback)
 
         layout.addStretch()
