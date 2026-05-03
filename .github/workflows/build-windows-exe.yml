@@ -26,7 +26,7 @@ jobs:
 
       - name: Build EXE with PyInstaller
         run: |
-          pyinstaller gui/main.py --name Tabu_GUI --onefile --windowed
+          pyinstaller gui/main.py --name Tabu_GUI --onefile --windowed --add-data "gui/Logo.png;gui"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6

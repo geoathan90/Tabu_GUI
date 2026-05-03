@@ -1,8 +1,25 @@
 from pathlib import Path
+import sys
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout
+
+
+def resource_path(*parts):
+    """
+    Return an absolute path for a resource.
+
+    Works both:
+    - when running from source
+    - when running from a PyInstaller-built executable
+    """
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        base = Path(sys._MEIPASS)
+    else:
+        base = Path(__file__).resolve().parents[1]
+
+    return base.joinpath(*parts)
 
 
 class HomePage(QWidget):
@@ -16,7 +33,11 @@ class HomePage(QWidget):
         self.logo_label = QLabel()
         self.logo_label.setAlignment(Qt.AlignCenter)
 
-        logo_path = Path(__file__).resolve().parent.parent / "Logo.png"
+        logo_path = resource_path("gui", "Logo.png")
+
+        #print("Logo path:", logo_path)
+        #print("Exists:", logo_path.exists())
+
         if logo_path.exists():
             pixmap = QPixmap(str(logo_path))
             if not pixmap.isNull():
@@ -59,7 +80,7 @@ class HomePage(QWidget):
         docs_label.setStyleSheet("font-size: 13px;")
 
         support_label = QLabel(
-            '<a href="mailto:PLACEHOLDER@EMAIL.COM">PLACEHOLDER@EMAIL.COM</a>'
+            '<a href="mailto:PLACEHOLDER@EMAIL.COM">Επικοινωνία</a>'
         )
         support_label.setAlignment(Qt.AlignCenter)
         support_label.setOpenExternalLinks(True)
