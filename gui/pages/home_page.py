@@ -71,7 +71,7 @@ class HomePage(QWidget):
 
         # ---------------- Footer links ----------------
         docs_label = QLabel(
-            '<a href="https://PLACEHOLDER-DOCS-LINK">Οδηγός Χρήσης</a>'
+            '<a href="https://github.com/geoathan90/Tabu_support/blob/main/Odigos_Xrisis.pdf">Οδηγός Χρήσης</a>'
         )
         docs_label.setAlignment(Qt.AlignCenter)
         docs_label.setOpenExternalLinks(True)
@@ -80,7 +80,7 @@ class HomePage(QWidget):
         docs_label.setStyleSheet("font-size: 13px;")
 
         support_label = QLabel(
-            '<a href="mailto:PLACEHOLDER@EMAIL.COM">Επικοινωνία</a>'
+            '<a href="mailto:g.athanasiadis@admie.gr">Επικοινωνία</a>'
         )
         support_label.setAlignment(Qt.AlignCenter)
         support_label.setOpenExternalLinks(True)
