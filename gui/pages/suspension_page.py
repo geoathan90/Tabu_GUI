@@ -140,8 +140,8 @@ class SuspensionPage(QWidget):
 
         if len(spans) != len(heights):
             raise ValueError("Τα ανοίγματα και οι υψομετρικές πρέπει να έχουν το ίδιο πλήθος τιμών.")
-        if len(spans) == 0:
-            raise ValueError("Χρειάζεται τουλάχιστον μία τιμή για ανοίγματα και υψομετρικές.")
+        if len(spans) == 0 or len(spans) == 1:
+            raise ValueError("Χρειάζονται τουλάχιστον δύο τιμές για ανοίγματα και υψομετρικές.")
 
         conductor = self.conductor_combo.currentText()
         temperature_C = float(self.temp_combo.currentText())
@@ -183,7 +183,7 @@ class SuspensionPage(QWidget):
             QMessageBox.information(
                 self,
                 "Success",
-                f"Ο αγωγός '{conductor_name}' φορτώθηκε επιτυχώς για την τρέχουσα συνεδρία.",
+                f"Ο αγωγός '{conductor_name}' φορτώθηκε επιτυχώς.",
             )
 
         except Exception as ex:
