@@ -45,10 +45,9 @@ def _extract_mapping_text(raw_text):
 
 def _validate_numeric_scalar(value, field_name):
     try:
-        value = float(value)
+        return float(value)
     except Exception:
         raise ValueError(f"Το πεδίο '{field_name}' πρέπει να είναι αριθμός.")
-    return value
 
 
 def _validate_tension_vector(values, field_name):
@@ -64,14 +63,15 @@ def _validate_tension_vector(values, field_name):
             cleaned.append(float(value))
         except Exception:
             raise ValueError(f"Το πεδίο '{field_name}' περιέχει μη αριθμητική τιμή στη θέση {i}.")
+
     return np.asarray(cleaned, dtype=float)
 
 
 def parse_conductor_text(raw_text):
     """
-    Parse a conductor-definition text safely.
+    Parse one conductor-definition text safely.
 
-    Expected overall shape:
+    Expected accepted shape:
         CONDUCTORS = {
             "Name": {
                 "w": ...,
@@ -83,8 +83,8 @@ def parse_conductor_text(raw_text):
         }
 
     Safe parsing rules:
-    - no exec
     - no eval
+    - no exec
     - np.array([...]) is rewritten to [...]
     - ast.literal_eval is used on the remaining text
 

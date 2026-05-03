@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
 )
 
-from tabu_scripts.data import TEMPS, available_conductors
+from tabu_scripts.data import TEMPS
 from tabu_scripts.engine import solve_one_temperature
 from tabu_scripts.output import (
     build_one_temperature_dataframe,
@@ -27,12 +27,19 @@ from gui.utils.table_helpers import (
     translate_headers,
     blank_row_df,
 )
+from gui.utils.conductor_catalog import (
+    conductor_names,
+    get_raw_conductor_entry,
+    add_conductor_to_catalog,
+)
+from gui.utils.conductor_loader import load_conductor_file
 
 
 class SuspensionPage(QWidget):
-    def __init__(self, home_callback):
+    def __init__(self, home_callback, app_state):
         super().__init__()
 
+        self.app_state = app_state
         self.current_display_df = None
 
         main_layout = QVBoxLayout(self)
@@ -59,7 +66,15 @@ class SuspensionPage(QWidget):
         self.heights_edit = QTextEdit()
 
         self.conductor_combo = QComboBox()
-        self.conductor_combo.addItems(available_conductors())
+
+        self.load_conductor_button = QPushButton("Φόρτωση Νέου Αγωγού")
+        self.load_conductor_button.clicked.connect(self.load_new_conductor_data)
+
+        conductor_row = QWidget()
+        conductor_row_layout = QHBoxLayout(conductor_row)
+        conductor_row_layout.setContentsMargins(0, 0, 0, 0)
+        conductor_row_layout.addWidget(self.conductor_combo, 1)
+        conductor_row_layout.addWidget(self.load_conductor_button)
 
         self.temp_combo = QComboBox()
         for t in TEMPS:
@@ -86,7 +101,7 @@ class SuspensionPage(QWidget):
         left_layout.addWidget(self.heights_edit, 4, 0)
 
         left_layout.addWidget(QLabel("Τύπος Αγωγού"), 5, 0)
-        left_layout.addWidget(self.conductor_combo, 6, 0)
+        left_layout.addWidget(conductor_row, 6, 0)
 
         left_layout.addWidget(QLabel("Θερμοκρασία (°C)"), 7, 0)
         left_layout.addWidget(self.temp_combo, 8, 0)
@@ -103,6 +118,21 @@ class SuspensionPage(QWidget):
         main_layout.addLayout(top_bar)
         main_layout.addSpacing(10)
         main_layout.addLayout(content_layout)
+
+        self.refresh_conductor_dropdown()
+
+    def refresh_conductor_dropdown(self, select_name=None):
+        current_name = select_name
+        if current_name is None:
+            current_name = self.conductor_combo.currentText()
+
+        names = conductor_names(self.app_state["conductors"])
+
+        self.conductor_combo.clear()
+        self.conductor_combo.addItems(names)
+
+        if current_name in names:
+            self.conductor_combo.setCurrentText(current_name)
 
     def get_inputs(self):
         spans = parse_series(self.spans_edit.toPlainText())
@@ -127,15 +157,53 @@ class SuspensionPage(QWidget):
     def show_dataframe(self, df):
         populate_table_widget(self.table, df)
 
+    def load_new_conductor_data(self):
+        try:
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "Load Conductor Data",
+                "",
+                "Text Files (*.txt);;All Files (*)",
+            )
+
+            if not file_path:
+                return
+
+            conductor_name, conductor_entry = load_conductor_file(file_path)
+
+            add_conductor_to_catalog(
+                self.app_state["conductors"],
+                conductor_name,
+                conductor_entry,
+                overwrite=False,
+            )
+
+            self.refresh_conductor_dropdown(select_name=conductor_name)
+
+            QMessageBox.information(
+                self,
+                "Success",
+                f"Ο αγωγός '{conductor_name}' φορτώθηκε επιτυχώς για την τρέχουσα συνεδρία.",
+            )
+
+        except Exception as ex:
+            QMessageBox.critical(self, "Error", str(ex))
+
     def solve_one_temperature_clicked(self):
         try:
-            spans, heights, conductor, temperature_C = self.get_inputs()
+            spans, heights, conductor_name, temperature_C = self.get_inputs()
+
+            raw_entry = get_raw_conductor_entry(
+                self.app_state["conductors"],
+                conductor_name,
+            )
 
             result = solve_one_temperature(
                 spans=spans,
                 heights=heights,
-                conductor_name=conductor,
+                conductor_name=conductor_name,
                 temperature_C=temperature_C,
+                external_conductor_entry=raw_entry,
             )
 
             df = build_one_temperature_dataframe(result)
@@ -156,7 +224,12 @@ class SuspensionPage(QWidget):
 
     def solve_all_temperatures_clicked(self):
         try:
-            spans, heights, conductor, _ = self.get_inputs()
+            spans, heights, conductor_name, _ = self.get_inputs()
+
+            raw_entry = get_raw_conductor_entry(
+                self.app_state["conductors"],
+                conductor_name,
+            )
 
             formatted_groups = []
             first_result = None
@@ -165,8 +238,9 @@ class SuspensionPage(QWidget):
                 result = solve_one_temperature(
                     spans=spans,
                     heights=heights,
-                    conductor_name=conductor,
+                    conductor_name=conductor_name,
                     temperature_C=float(temp),
+                    external_conductor_entry=raw_entry,
                 )
 
                 if first_result is None:

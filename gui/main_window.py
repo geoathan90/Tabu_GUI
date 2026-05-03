@@ -1,9 +1,9 @@
-
 from PySide6.QtWidgets import QMainWindow, QStackedWidget
 
 from gui.pages.home_page import HomePage
 from gui.pages.suspension_page import SuspensionPage
 from gui.pages.terminal_page import TerminalPage
+from gui.utils.conductor_catalog import create_session_catalog
 
 
 class MainWindow(QMainWindow):
@@ -12,6 +12,10 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Tabu GUI")
         self.resize(1350, 800)
+
+        self.app_state = {
+            "conductors": create_session_catalog()
+        }
 
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
@@ -23,6 +27,7 @@ class MainWindow(QMainWindow):
 
         self.suspension_page = SuspensionPage(
             home_callback=self.go_home,
+            app_state=self.app_state,
         )
 
         self.terminal_page = TerminalPage(

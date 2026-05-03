@@ -9,8 +9,7 @@ def create_session_catalog():
     Create a session-local conductor catalog.
 
     The returned dictionary starts as a deep copy of the built-in conductors
-    from tabu_scripts.data.CONDUCTORS and can then be extended during runtime
-    without modifying the built-in source data.
+    and can be extended during runtime without modifying tabu_scripts.data.
     """
     return deepcopy(CONDUCTORS)
 
@@ -22,17 +21,26 @@ def conductor_names(catalog):
     return sorted(catalog.keys())
 
 
-def normalize_conductor_entry(entry):
+def get_raw_conductor_entry(catalog, conductor_name):
     """
-    Normalize one conductor entry to the same basic structure used by the
-    built-in catalog.
+    Return one raw conductor entry from the session catalog.
 
-    Expected keys:
+    The returned entry is expected to have:
     - w
     - A_cm2
     - E_kg_per_m2
     - T350
     - T500
+    """
+    if conductor_name not in catalog:
+        raise ValueError(f"Ο αγωγός '{conductor_name}' δεν βρέθηκε στον τρέχοντα κατάλογο.")
+
+    return catalog[conductor_name]
+
+
+def normalize_conductor_entry(entry):
+    """
+    Normalize one conductor entry to the same shape as the built-in catalog.
     """
     return {
         "w": float(entry["w"]),
@@ -50,61 +58,25 @@ def add_conductor_to_catalog(catalog, conductor_name, conductor_entry, overwrite
     Parameters
     ----------
     catalog : dict
-        The session-local conductor catalog.
+        Session-local conductor catalog.
 
     conductor_name : str
         Name of the conductor.
 
     conductor_entry : dict
-        Dictionary with the conductor fields:
-        w, A_cm2, E_kg_per_m2, T350, T500
+        Raw conductor entry with keys:
+        - w
+        - A_cm2
+        - E_kg_per_m2
+        - T350
+        - T500
 
     overwrite : bool, default False
-        If False, an error is raised when the name already exists.
-
-    Returns
-    -------
-    dict
-        The normalized conductor entry that was inserted.
+        If False, an error is raised when the conductor name already exists.
     """
     if conductor_name in catalog and not overwrite:
-        raise ValueError(f"Ο αγωγός '{conductor_name}' υπάρχει ήδη στην τρέχουσα συνεδρία.")
+        raise ValueError(f"Ο αγωγός '{conductor_name}' έχει φορτωθεί ήδη.")
 
     clean_entry = normalize_conductor_entry(conductor_entry)
     catalog[conductor_name] = clean_entry
     return clean_entry
-
-
-def resolve_conductor_data(catalog, conductor_name, ba_label):
-    """
-    Resolve one conductor from the session catalog and return the same kind of
-    dictionary that the solver currently expects.
-
-    Returned keys:
-    - name
-    - ba_label
-    - w
-    - A_cm2
-    - E_kg_per_m2
-    - Tvec
-    """
-    if conductor_name not in catalog:
-        raise ValueError(f"Ο αγωγός '{conductor_name}' δεν βρέθηκε στον τρέχοντα κατάλογο.")
-
-    data = catalog[conductor_name]
-
-    if ba_label == "BA 350":
-        Tvec = np.asarray(data["T350"], dtype=float)
-    elif ba_label == "BA 500":
-        Tvec = np.asarray(data["T500"], dtype=float)
-    else:
-        raise ValueError("ba_label must be 'BA 350' or 'BA 500'")
-
-    return {
-        "name": conductor_name,
-        "ba_label": ba_label,
-        "w": float(data["w"]),
-        "A_cm2": float(data["A_cm2"]),
-        "E_kg_per_m2": float(data["E_kg_per_m2"]),
-        "Tvec": Tvec,
-    }
