@@ -351,7 +351,7 @@ def _forward_from_H0(H0: float):
                  - 0.5 * (s[i + 1] * s[i + 1]) * (w * w))
 
         if disc < 0.0:
-            print(f"Αρνητική διακρίνουσα {i+1} , τη θεωρώ 0, ΕΛΕΓΧΟΣ.")
+            print(f"Κάπου έγινε μαλακία στο άνοιγμα {i+1}, αρνητική διακρίνουσα.")
             disc = 0.0
 
         H[i + 1] = (axial_next + 0.5 * w * h[i + 1] + np.sqrt(disc)) / denom

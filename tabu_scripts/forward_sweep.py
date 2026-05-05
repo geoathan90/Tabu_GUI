@@ -185,7 +185,9 @@ def forward_sweep_from_H0(spans, heights, H0, w):
         )
 
         if disc < 0.0:
+            print(f"Κάπου έγινε μαλακία στο άνοιγμα {i+1}, αρνητική διακρίνουσα.")
             disc = 0.0
+            
 
         #disc_arr[i] = disc   # optional for debugging
 
