@@ -236,14 +236,18 @@ def solve_horizontal_tensions_legacy(
     target = total_length(spans, heights, np.full(n, float(T_ref)), w)
 
     H0 = float(np.clip(T_ref, H_min, H_max))
-    dt = float(dt0)
+    dt = float(dt0)     # the step of the approximation that switches direction
+                        # and halves.
 
-    iso = None
-    best_H = None
+    iso = None          # essentially the previous "direction"
+    
+    best_H = None       # storage just in case max_iters is reached
     best_F = None
     best_H0 = H0
 
     for it in range(max_iters):
+
+        # run one full candidate solution from this H0
         F, H = total_length_error(
             spans=spans,
             heights=heights,
@@ -252,11 +256,13 @@ def solve_horizontal_tensions_legacy(
             target_total_length=target,
         )
 
+        # Keep the best candidate seen so far
         if best_F is None or abs(F) < abs(best_F):
             best_F = F
             best_H = H.copy()
             best_H0 = float(H0)
 
+        # Convergence criterion
         if abs(F) <= atol_m:
             total = total_length(spans, heights, H, w)
             return H, {
@@ -269,19 +275,25 @@ def solve_horizontal_tensions_legacy(
                 "dt_final": dt,
             }
 
+        # Decide direction from the sign of F
         if F <= 0.0:
             isn = -1
+
+            # if direction changed, then halve the step
             if iso is not None and isn != iso:
                 dt /= 2.0
-            H0 -= dt
+            H0 -= dt   # F<0 means section too short, so we lower tension
+        
         else:
             isn = 1
             if iso is not None and isn != iso:
                 dt /= 2.0
-            H0 += dt
+            H0 += dt   # F<0 means section too long, so we raise tension
 
-        iso = isn
-        H0 = float(np.clip(H0, H_min, H_max))
+        iso = isn  # store this direction for the next iteration
+
+        H0 = float(np.clip(H0, H_min, H_max))   # ensure H0 remains within bounds
+                                                # just to be safe
 
     total = total_length(spans, heights, best_H, w)
     return best_H, {
