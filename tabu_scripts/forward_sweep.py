@@ -1,7 +1,7 @@
 import numpy as np
 
 def forward_sweep_from_H0(spans, heights, H0, w):
-    """
+"""
     Propagate horizontal tensions span by span, starting from an assumed first-span
     horizontal tension ``H0``.
 
@@ -152,7 +152,7 @@ def forward_sweep_from_H0(spans, heights, H0, w):
     >>> out = forward_sweep_from_H0(spans, heights, H0_guess, w)
     >>> H_solution = out["H"]
     >>> total = total_length(spans, heights, H_solution, w)
-    """
+"""
 
     s = np.asarray(spans, dtype=float)
     h = np.asarray(heights, dtype=float)

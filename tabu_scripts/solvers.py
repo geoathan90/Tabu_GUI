@@ -1,46 +1,46 @@
 """
-solvers.py
-==========
+    solvers.py
+    ==========
 
-Small solver helper module.
+    Small solver helper module.
 
-At the moment this file contains only one function:
+    At the moment this file contains only one function:
 
-- ``total_length_error``
+    - ``total_length_error``
 
-Purpose
--------
-The outer solving methods do not solve every span tension directly.
-Instead, they:
+    Purpose
+    -------
+    The outer solving methods do not solve every span tension directly.
+    Instead, they:
 
-1. assume a first-span horizontal tension ``H0``
-2. run the forward sweep to propagate tensions through all spans
-3. calculate the total conductor length that results
-4. compare that total length against a target total length
+    1. assume a first-span horizontal tension ``H0``
+    2. run the forward sweep to propagate tensions through all spans
+    3. calculate the total conductor length that results
+    4. compare that total length against a target total length
 
-The difference between those two totals is the quantity that the outer solver
-tries to drive to zero.
+    The difference between those two totals is the quantity that the outer solver
+    tries to drive to zero.
 
-Typical usage
--------------
->>> import numpy as np
->>> from solvers import total_length_error
->>>
->>> spans = np.array([254.08, 385.0, 255.0, 485.0])
->>> heights = np.array([-57.13, -21.81, -5.28, 33.25])
->>> H0 = 2026.0
->>> w = 1.303
->>> target_total_length = 1387.5
->>>
->>> error_m, H_solution = total_length_error(
-...     spans=spans,
-...     heights=heights,
-...     H0=H0,
-...     w=w,
-...     target_total_length=target_total_length,
-... )
->>> H_solution
-array([...])
+    Typical usage
+    -------------
+    >>> import numpy as np
+    >>> from solvers import total_length_error
+    >>>
+    >>> spans = np.array([254.08, 385.0, 255.0, 485.0])
+    >>> heights = np.array([-57.13, -21.81, -5.28, 33.25])
+    >>> H0 = 2026.0
+    >>> w = 1.303
+    >>> target_total_length = 1387.5
+    >>>
+    >>> error_m, H_solution = total_length_error(
+    ...     spans=spans,
+    ...     heights=heights,
+    ...     H0=H0,
+    ...     w=w,
+    ...     target_total_length=target_total_length,
+    ... )
+    >>> H_solution
+    array([...])
 """
 
 import numpy as np
@@ -49,7 +49,7 @@ from tabu_scripts.formulas import total_length
 from tabu_scripts.forward_sweep import forward_sweep_from_H0
 
 def total_length_error(spans, heights, H0, w, target_total_length):
-    """
+"""
     Run one forward sweep and compare the resulting total conductor length
     against a target total length.
 
@@ -139,7 +139,7 @@ def total_length_error(spans, heights, H0, w, target_total_length):
     ... )
     >>> # 3) if error_m > 0, the current solution is too long
     >>> # 4) if error_m < 0, the current solution is too short
-    """
+"""
     
     out = forward_sweep_from_H0(spans, heights, H0, w)
     H_solution = out["H"]
@@ -162,7 +162,7 @@ def solve_horizontal_tensions_legacy(
     max_iters=50000,
     dt0=99.0,
 ):
-    """
+"""
     Legacy-style outer solve on the first horizontal tension H0.
 
     Philosophy
@@ -231,7 +231,7 @@ def solve_horizontal_tensions_legacy(
     The target total conductor length is defined as the length obtained when all
     spans are evaluated at the single reference tension T_ref. This matches the
     current total-length-error philosophy in the rebuilt solver structure. 
-    """
+"""
     n = len(spans)
     target = total_length(spans, heights, np.full(n, float(T_ref)), w)
 

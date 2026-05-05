@@ -1,24 +1,24 @@
 """
-data.py
-=======
+    data.py
+    =======
 
-Small data module for conductor properties and temperature-dependent reference
- tensions.
+    Small data module for conductor properties and temperature-dependent reference
+    tensions.
 
-Example
--------
->>> from data import select_conductor_data
->>> info = select_conductor_data("Grosbeak", "BA 500")
->>> info["w"]
-1.303
->>> info["Tvec"]
-array([2026., 1989., 1953., 1919., 1885.])
+    Example
+    -------
+    >>> from data import select_conductor_data
+    >>> info = select_conductor_data("Grosbeak", "BA 500")
+    >>> info["w"]
+    1.303
+    >>> info["Tvec"]
+    array([2026., 1989., 1953., 1919., 1885.])
 
-Another example, printing the available conductor names:
+    Another example, printing the available conductor names:
 
->>> from data import available_conductors
->>> available_conductors()
-['Cardinal', 'Grosbeak', 'Linnet', 'SW150_0_396', 'SW150_0_460', 'SW400']
+    >>> from data import available_conductors
+    >>> available_conductors()
+    ['Cardinal', 'Grosbeak', 'Linnet', 'SW150_0_396', 'SW150_0_460', 'SW400']
 """
 
 import numpy as np
@@ -84,21 +84,21 @@ CONDUCTORS = {
 
 def select_conductor_data(conductor_name, ba_label):
     """
-    Returns a single dictionary with the constants needed for one run.
+        Returns a single dictionary with the constants needed for one run.
 
-    Example
-    -------
-    >>> info = select_conductor_data("SW400", "BA 350")
-    >>> info["w"]
-    0.769
-    >>> info["Tvec"]
-    array([1810., 1740., 1670., 1610., 1550.])
+        Example
+        -------
+        >>> info = select_conductor_data("SW400", "BA 350")
+        >>> info["w"]
+        0.769
+        >>> info["Tvec"]
+        array([1810., 1740., 1670., 1610., 1550.])
 
-    Common pattern in a larger script
-    ---------------------------------
-    >>> # 1) ruling_span_m = ruling_span_value(spans)
-    >>> # 2) ba_label = classify_ruling_span(ruling_span_m)
-    >>> # 3) conductor = select_conductor_data("Grosbeak", ba_label)
+        Common pattern in a larger script
+        ---------------------------------
+        >>> # 1) ruling_span_m = ruling_span_value(spans)
+        >>> # 2) ba_label = classify_ruling_span(ruling_span_m)
+        >>> # 3) conductor = select_conductor_data("Grosbeak", ba_label)
     """
     
     data = CONDUCTORS[conductor_name]
@@ -122,18 +122,18 @@ def select_conductor_data(conductor_name, ba_label):
     
 def available_conductors():
     """
-    Returns the conductor names stored in :data:`CONDUCTORS`.
+        Returns the conductor names stored in :data:`CONDUCTORS`.
 
-    Purpose
-    ------------------------
-    A GUI or command-line tool often needs to show the conductor names in a
-    dropdown or menu. Returning the names through one small function is simpler
-    than repeating ``sorted(CONDUCTORS.keys())`` in several places.
+        Purpose
+        ------------------------
+        A GUI or command-line tool often needs to show the conductor names in a
+        dropdown or menu. Returning the names through one small function is simpler
+        than repeating ``sorted(CONDUCTORS.keys())`` in several places.
 
-    Example
-    -------
-    >>> available_conductors()
-    ['Cardinal', 'Grosbeak', 'Linnet', 'SW150_0_396', 'SW150_0_460', 'SW400']
+        Example
+        -------
+        >>> available_conductors()
+        ['Cardinal', 'Grosbeak', 'Linnet', 'SW150_0_396', 'SW150_0_460', 'SW400']
     """
     return sorted(CONDUCTORS.keys())
 

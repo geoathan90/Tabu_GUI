@@ -7,14 +7,14 @@ from tabu_scripts.solvers import solve_horizontal_tensions_legacy
 
 def _build_conductor_from_raw_entry(conductor_name, ba_label, raw_entry):
     """
-    Build the solver-ready conductor dictionary from a raw conductor entry.
+        Build the solver-ready conductor dictionary from a raw conductor entry.
 
-    raw_entry is expected to contain:
-    - w
-    - A_cm2
-    - E_kg_per_m2
-    - T350
-    - T500
+        raw_entry is expected to contain:
+        - w
+        - A_cm2
+        - E_kg_per_m2
+        - T350
+        - T500
     """
     required_fields = ["w", "A_cm2", "E_kg_per_m2", "T350", "T500"]
     missing = [field for field in required_fields if field not in raw_entry]
@@ -56,23 +56,23 @@ def solve_one_temperature(
     external_conductor_entry=None,
 ):
     """
-    Solve one full case for one temperature.
+        Solve one full case for one temperature.
 
-    Two conductor-source modes are supported:
+        Two conductor-source modes are supported:
 
-    1. Built-in mode
-       If external_conductor_entry is None, the conductor is resolved from
-       tabu_scripts.data through conductor_name and the automatically inferred
-       BA label.
+        1. Built-in mode
+        If external_conductor_entry is None, the conductor is resolved from
+        tabu_scripts.data through conductor_name and the automatically inferred
+        BA label.
 
-    2. External/session mode
-       If external_conductor_entry is provided, it is used directly.
-       In that case the supplied dictionary is expected to contain:
-       - w
-       - A_cm2
-       - E_kg_per_m2
-       - T350
-       - T500
+        2. External/session mode
+        If external_conductor_entry is provided, it is used directly.
+        In that case the supplied dictionary is expected to contain:
+        - w
+        - A_cm2
+        - E_kg_per_m2
+        - T350
+        - T500
     """
     spans_arr = np.asarray(spans, dtype=float)
     heights_arr = np.asarray(heights, dtype=float)

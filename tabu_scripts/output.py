@@ -1,33 +1,33 @@
 """
-output.py
-=========
+    output.py
+    =========
 
-Small output module for turning raw solver results into pandas DataFrames.
+    Small output module for turning raw solver results into pandas DataFrames.
 
-Purpose
--------
-The numerical modules return plain dictionaries and NumPy arrays.
-This file is responsible only for presentation/output work.
+    Purpose
+    -------
+    The numerical modules return plain dictionaries and NumPy arrays.
+    This file is responsible only for presentation/output work.
 
-At the moment, the main function here is:
+    At the moment, the main function here is:
 
-- build_one_temperature_dataframe(result)
+    - build_one_temperature_dataframe(result)
 
-It expects the dictionary returned by engine.solve_one_temperature(...).
+    It expects the dictionary returned by engine.solve_one_temperature(...).
 
-Typical usage
--------------
->>> from engine import solve_one_temperature
->>> from output import build_one_temperature_dataframe
->>>
->>> result = solve_one_temperature(
-...     spans=[254.08, 385.0, 255.0, 485.0],
-...     heights=[-57.13, -21.81, -5.28, 33.25],
-...     conductor_name="Grosbeak",
-...     temperature_C=20,
-... )
->>> df = build_one_temperature_dataframe(result)
->>> df.head()
+    Typical usage
+    -------------
+    >>> from engine import solve_one_temperature
+    >>> from output import build_one_temperature_dataframe
+    >>>
+    >>> result = solve_one_temperature(
+    ...     spans=[254.08, 385.0, 255.0, 485.0],
+    ...     heights=[-57.13, -21.81, -5.28, 33.25],
+    ...     conductor_name="Grosbeak",
+    ...     temperature_C=20,
+    ... )
+    >>> df = build_one_temperature_dataframe(result)
+    >>> df.head()
 """
 
 import numpy as np

@@ -1,6 +1,6 @@
 """
-HOW TO RUN: 
-    python -m tabu_scripts.testing
+    HOW TO RUN: 
+        python -m tabu_scripts.testing
 
 """
 

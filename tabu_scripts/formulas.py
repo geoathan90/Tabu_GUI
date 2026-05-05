@@ -1,26 +1,26 @@
 """
-formulas.py
-===========
+    formulas.py
+    ===========
 
-Main groups of functions
-------------------------
-1. Ruling span
-2. Span length and sag formulas
-3. Correction-term formulas used in the final output tables
+    Main groups of functions
+    ------------------------
+    1. Ruling span
+    2. Span length and sag formulas
+    3. Correction-term formulas used in the final output tables
 
-Typical usage pattern
----------------------
->>> import numpy as np
->>> from data import select_conductor_data
->>> from formulas import ruling_span_info, lengths, sags
->>>
->>> spans = np.array([230.0, 250.0, 410.0, 220.0])
->>> heights = np.array([5.0, -3.0, 8.0, 0.0])
->>> ruling_span_m, ba_label = ruling_span_info(spans)
->>> conductor = select_conductor_data("Grosbeak", ba_label)
->>> T_ref = conductor["Tvec"][0]
->>> L = lengths(spans, heights, np.full(len(spans), T_ref), conductor["w"])
->>> f = sags(spans, np.full(len(spans), T_ref), conductor["w"])
+    Typical usage pattern
+    ---------------------
+    >>> import numpy as np
+    >>> from data import select_conductor_data
+    >>> from formulas import ruling_span_info, lengths, sags
+    >>>
+    >>> spans = np.array([230.0, 250.0, 410.0, 220.0])
+    >>> heights = np.array([5.0, -3.0, 8.0, 0.0])
+    >>> ruling_span_m, ba_label = ruling_span_info(spans)
+    >>> conductor = select_conductor_data("Grosbeak", ba_label)
+    >>> T_ref = conductor["Tvec"][0]
+    >>> L = lengths(spans, heights, np.full(len(spans), T_ref), conductor["w"])
+    >>> f = sags(spans, np.full(len(spans), T_ref), conductor["w"])
 """
 
 import numpy as np
