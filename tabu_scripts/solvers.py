@@ -240,6 +240,8 @@ def solve_horizontal_tensions_legacy(
                         # and halves.
 
     iso = None          # essentially the previous "direction"
+                        # iso = old
+                        # isn = new
     
     best_H = None       # storage just in case max_iters is reached
     best_F = None
