@@ -77,7 +77,7 @@ class HomePage(QWidget):
         docs_label.setOpenExternalLinks(True)
         docs_label.setTextFormat(Qt.RichText)
         docs_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        docs_label.setStyleSheet("font-size: 13px;")
+        docs_label.setStyleSheet("font-size: 26px;")
 
         support_label = QLabel(
             '<a href="mailto:g.athanasiadis@admie.gr">Επικοινωνία</a>'
@@ -86,7 +86,7 @@ class HomePage(QWidget):
         support_label.setOpenExternalLinks(True)
         support_label.setTextFormat(Qt.RichText)
         support_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        support_label.setStyleSheet("font-size: 13px;")
+        support_label.setStyleSheet("font-size: 26px;")
 
         # ---------------- Layout ----------------
         layout.addStretch()
