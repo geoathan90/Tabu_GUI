@@ -114,7 +114,7 @@ def parse_conductor_text(raw_text):
     if not isinstance(entry, dict):
         raise ValueError("Τα δεδομένα του αγωγού πρέπει να είναι dictionary.")
 
-    required_fields = ["w", "A_cm2", "E_kg_per_m2", "T350", "T500"]
+    required_fields = ["w", "A_cm2", "E_kg_per_m2", "alpha", "T350", "T500"]
     missing = [field for field in required_fields if field not in entry]
     if missing:
         raise ValueError(f"Λείπουν τα εξής πεδία: {', '.join(missing)}")
@@ -123,6 +123,7 @@ def parse_conductor_text(raw_text):
         "w": _validate_numeric_scalar(entry["w"], "w"),
         "A_cm2": _validate_numeric_scalar(entry["A_cm2"], "A_cm2"),
         "E_kg_per_m2": _validate_numeric_scalar(entry["E_kg_per_m2"], "E_kg_per_m2"),
+        "alpha": _validate_numeric_scalar(entry["alpha"], "alpha"),
         "T350": _validate_tension_vector(entry["T350"], "T350"),
         "T500": _validate_tension_vector(entry["T500"], "T500"),
     }
@@ -133,6 +134,8 @@ def parse_conductor_text(raw_text):
         raise ValueError("Το A_cm2 πρέπει να είναι θετικό.")
     if clean_entry["E_kg_per_m2"] <= 0:
         raise ValueError("Το E_kg_per_m2 πρέπει να είναι θετικό.")
+    if clean_entry["alpha"] <= 0:
+        raise ValueError("Το alpha πρέπει να είναι θετικό.")
 
     return conductor_name.strip(), clean_entry
 
