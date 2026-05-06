@@ -13,10 +13,11 @@ def _build_conductor_from_raw_entry(conductor_name, ba_label, raw_entry):
         - w
         - A_cm2
         - E_kg_per_m2
+        - alpha (thermal expansion coefficient)
         - T350
         - T500
     """
-    required_fields = ["w", "A_cm2", "E_kg_per_m2", "T350", "T500"]
+    required_fields = ["w", "A_cm2", "E_kg_per_m2", "alpha", "T350", "T500"]
     missing = [field for field in required_fields if field not in raw_entry]
     if missing:
         raise ValueError(
@@ -39,6 +40,7 @@ def _build_conductor_from_raw_entry(conductor_name, ba_label, raw_entry):
         "w": float(raw_entry["w"]),
         "A_cm2": float(raw_entry["A_cm2"]),
         "E_kg_per_m2": float(raw_entry["E_kg_per_m2"]),
+        "alpha": float(raw_entry["alpha"]),
         "Tvec": Tvec,
     }
 
@@ -71,6 +73,7 @@ def solve_one_temperature(
         - w
         - A_cm2
         - E_kg_per_m2
+        - alpha
         - T350
         - T500
     """
