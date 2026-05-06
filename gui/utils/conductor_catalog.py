@@ -29,6 +29,7 @@ def get_raw_conductor_entry(catalog, conductor_name):
     - w
     - A_cm2
     - E_kg_per_m2
+    - alpha
     - T350
     - T500
     """
@@ -46,6 +47,7 @@ def normalize_conductor_entry(entry):
         "w": float(entry["w"]),
         "A_cm2": float(entry["A_cm2"]),
         "E_kg_per_m2": float(entry["E_kg_per_m2"]),
+        "alpha": float(entry["alpha"]),
         "T350": np.asarray(entry["T350"], dtype=float),
         "T500": np.asarray(entry["T500"], dtype=float),
     }
@@ -68,6 +70,7 @@ def add_conductor_to_catalog(catalog, conductor_name, conductor_entry, overwrite
         - w
         - A_cm2
         - E_kg_per_m2
+        - alpha
         - T350
         - T500
 
