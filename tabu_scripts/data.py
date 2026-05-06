@@ -34,6 +34,7 @@ TEMPS = np.array([0.0, 10.0, 20.0, 30.0, 40.0])
 #   A_cm2        nominal cross sectional area [cm^2]
 #   E_kg_per_m2  modulus of elasticity in the unit system already used by the
 #                legacy-style formulas [kgf/m^2 or kp/m^2 compatible]
+#   alpha        thermal expansion coefficient [dimensionless]
 #   T350         reference tensions for BA 350 at the temperatures in TEMPS
 #   T500         reference tensions for BA 500 at the temperatures in TEMPS
 
