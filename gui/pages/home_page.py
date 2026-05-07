@@ -61,7 +61,7 @@ class HomePage(QWidget):
         btn_suspension.setFixedWidth(260)
         btn_suspension.clicked.connect(open_suspension_callback)
 
-        btn_tensions = QPushButton("Επίλυση Τριτοβάθμιας")
+        btn_tensions = QPushButton("Επίλυση Καταστατικής Εξίσωσης")
         btn_tensions.setMinimumHeight(60)
         btn_tensions.setFixedWidth(260)
         btn_tensions.clicked.connect(open_tensions_callback)
@@ -73,7 +73,7 @@ class HomePage(QWidget):
 
         # ---------------- Footer links ----------------
         docs_label = QLabel(
-            '<a href="https://PLACEHOLDER-DOCS-LINK">Οδηγός Χρήσης</a>'
+            '<a href="https://github.com/geoathan90/Tabu_support/blob/main/Odigos_Xrisis.pdf">Οδηγός Χρήσης</a>'
         )
         docs_label.setAlignment(Qt.AlignCenter)
         docs_label.setOpenExternalLinks(True)
@@ -86,7 +86,7 @@ class HomePage(QWidget):
         divider_label.setStyleSheet("font-size: 16px;")
 
         support_label = QLabel(
-            '<a href="mailto:PLACEHOLDER@EMAIL.COM">Επικοινωνία</a>'
+            '<a href="mailto:g.athanasiadis@admie.gr">Επικοινωνία</a>'
         )
         support_label.setAlignment(Qt.AlignCenter)
         support_label.setOpenExternalLinks(True)
