@@ -28,7 +28,7 @@ class TensionsPage(QWidget):
         self.home_button = QPushButton("HOME")
         self.home_button.clicked.connect(home_callback)
 
-        page_title = QLabel("Επίλυση Τριτοβάθμιας")
+        page_title = QLabel("Επίλυση Καταστατικής Εξίσωσης")
         page_title.setStyleSheet("font-size: 22px; font-weight: bold;")
 
         top_bar.addWidget(self.home_button)
