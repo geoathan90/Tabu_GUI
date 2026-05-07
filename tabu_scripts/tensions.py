@@ -235,6 +235,351 @@ def solve_for_H2_with_conductor(
         w2=w2,
     )
 
+####################################################
+def _largest_positive_real_root(coeffs, imag_tol=1e-9):
+    """
+        Return the largest positive real root of a polynomial.
+    """
+    roots = np.roots(coeffs)
+
+    candidates = []
+    for r in roots:
+        if abs(r.imag) < imag_tol and r.real > 0.0 and np.isfinite(r.real):
+            candidates.append(float(r.real))
+
+    if not candidates:
+        raise RuntimeError("Δεν βρέθηκε θετική πραγματική ρίζα.")
+
+    return max(candidates)
+
+
+def span_tilt_geometry(S, dh):
+    """
+        Return the basic inclined-span geometry.
+    
+        Parameters
+        ----------
+        S : float
+            Horizontal span length [m].
+    
+        dh : float
+            Elevation difference h_R - h_L [m].
+    
+        Returns
+        -------
+        dict
+            Dictionary with:
+            - "S"      horizontal span [m]
+            - "dh"     elevation difference [m]
+            - "a"      span/chord length [m]
+            - "cospsi" cos(psi), where psi is the span tilt angle
+            - "psi_rad"
+            - "psi_deg"
+    
+        Notes
+        -----
+        In the paper formulation for inclined spans, the state equation uses the span
+        length a and the tilt angle psi through factors of cos(psi). For a horizontal
+        span, dh = 0, so cos(psi) = 1.0. :contentReference[oaicite:1]{index=1}
+    """
+    S = float(S)
+    dh = float(dh)
+
+    if S <= 0.0:
+        raise ValueError("S must be positive.")
+
+    a = float(np.hypot(S, dh))
+    psi_rad = float(np.arctan2(dh, S))
+    cospsi = float(S / a)
+
+    return {
+        "S": S,
+        "dh": dh,
+        "a": a,
+        "cospsi": cospsi,
+        "psi_rad": psi_rad,
+        "psi_deg": float(np.degrees(psi_rad)),
+    }
+
+def solve_for_sigma2_inclined(
+    S,
+    dh,
+    sigma1,
+    T1,
+    T2,
+    A_m2,
+    E_kg_per_m2,
+    alpha,
+    w1,
+    w2=None,
+    epsilon_plast=0.0,
+    imag_tol=1e-9,
+):
+    """
+        Solve the inclined-span conductor state equation for the final stress sigma2.
+    
+        Parameters
+        ----------
+        S : float
+            Horizontal span length [m].
+    
+        dh : float
+            Elevation difference h_R - h_L [m].
+    
+        sigma1 : float
+            Initial conductor stress.
+    
+        T1 : float
+            Initial temperature [°C].
+    
+        T2 : float
+            Final temperature [°C].
+    
+        A_m2 : float
+            Conductor area [m^2].
+    
+        E_kg_per_m2 : float
+            Elasticity modulus in the same legacy-compatible unit system used in the
+            rest of the project.
+    
+        alpha : float
+            Thermal expansion coefficient [1/°C].
+    
+        w1 : float
+            Initial unit weight [kg/m].
+    
+        w2 : float or None, default None
+            Final unit weight [kg/m]. If omitted, w1 is used.
+    
+        epsilon_plast : float, default 0.0
+            Plastic strain term. The paper includes this term explicitly.
+            If plastic elongation is being ignored, keep this at 0.0.
+    
+        imag_tol : float, default 1e-9
+            Maximum allowed imaginary part when filtering roots.
+    
+        Returns
+        -------
+        float
+            Final stress sigma2.
+    
+        Model note
+        ----------
+        Following the paper's inclined-span formulation, define:
+    
+            a      = sqrt(S^2 + dh^2)
+            cosψ   = S / a
+    
+        Then the coefficients are taken as:
+    
+            A = cos^3(psi) * a^2 * E * w1^2 / (24 * A_c^2 * sigma1^2)
+                + cos(psi) * alpha * (T2 - T1) * E
+                + cos(psi) * epsilon_plast * E
+                - sigma1
+    
+            B = cos^3(psi) * a^2 * E * w2^2 / (24 * A_c^2)
+    
+        and the cubic is:
+    
+            sigma2^2 * (sigma2 + A) = B
+    
+        or equivalently:
+    
+            sigma2^3 + A*sigma2^2 - B = 0
+    
+        This follows the paper's Equations (2)–(4). :contentReference[oaicite:2]{index=2}
+    """
+    geom = span_tilt_geometry(S, dh)
+
+    sigma1 = float(sigma1)
+    T1 = float(T1)
+    T2 = float(T2)
+    A_m2 = float(A_m2)
+    E_kg_per_m2 = float(E_kg_per_m2)
+    alpha = float(alpha)
+    w1 = float(w1)
+    w2 = float(w1 if w2 is None else w2)
+    epsilon_plast = float(epsilon_plast)
+
+    if sigma1 <= 0.0:
+        raise ValueError("sigma1 must be positive.")
+    if A_m2 <= 0.0:
+        raise ValueError("A_m2 must be positive.")
+    if E_kg_per_m2 <= 0.0:
+        raise ValueError("E_kg_per_m2 must be positive.")
+    if alpha <= 0.0:
+        raise ValueError("alpha must be positive.")
+    if w1 <= 0.0 or w2 <= 0.0:
+        raise ValueError("w1 and w2 must be positive.")
+
+    a = geom["a"]
+    cospsi = geom["cospsi"]
+
+    Acoef = (
+        (cospsi**3) * (a**2) * E_kg_per_m2 * (w1**2)
+        / (24.0 * (A_m2**2) * (sigma1**2))
+        + cospsi * alpha * (T2 - T1) * E_kg_per_m2
+        + cospsi * epsilon_plast * E_kg_per_m2
+        - sigma1
+    )
+
+    Bcoef = (
+        (cospsi**3) * (a**2) * E_kg_per_m2 * (w2**2)
+        / (24.0 * (A_m2**2))
+    )
+
+    # sigma2^3 + Acoef*sigma2^2 - Bcoef = 0
+    sigma2 = _largest_positive_real_root(
+        [1.0, Acoef, 0.0, -Bcoef],
+        imag_tol=imag_tol,
+    )
+
+    return sigma2
+
+
+def solve_for_H2_inclined(
+    S,
+    dh,
+    H1,
+    T1,
+    T2,
+    A_m2,
+    E_kg_per_m2,
+    alpha,
+    w1,
+    w2=None,
+    epsilon_plast=0.0,
+    imag_tol=1e-9,
+):
+    """
+        Solve the inclined-span conductor state equation for the final horizontal
+        tension H2.
+    
+        Parameters
+        ----------
+        S, dh, T1, T2, A_m2, E_kg_per_m2, alpha, w1, w2, epsilon_plast
+            Same meaning as in solve_for_sigma2_inclined().
+    
+        H1 : float
+            Initial horizontal tension.
+    
+        Returns
+        -------
+        float
+            Final horizontal tension H2.
+    
+        Notes
+        -----
+        The paper writes the state equation in terms of stress. This function converts
+        H1 to sigma1 = H1 / A_m2, solves for sigma2, and then converts back:
+    
+            H2 = sigma2 * A_m2
+    
+        This lets the calling code stay in the H-based convention already used in the
+        rest of your project. :contentReference[oaicite:3]{index=3}
+    """
+    H1 = float(H1)
+    A_m2 = float(A_m2)
+
+    if H1 <= 0.0:
+        raise ValueError("H1 must be positive.")
+    if A_m2 <= 0.0:
+        raise ValueError("A_m2 must be positive.")
+
+    sigma1 = H1 / A_m2
+
+    sigma2 = solve_for_sigma2_inclined(
+        S=S,
+        dh=dh,
+        sigma1=sigma1,
+        T1=T1,
+        T2=T2,
+        A_m2=A_m2,
+        E_kg_per_m2=E_kg_per_m2,
+        alpha=alpha,
+        w1=w1,
+        w2=w2,
+        epsilon_plast=epsilon_plast,
+        imag_tol=imag_tol,
+    )
+
+    return sigma2 * A_m2
+
+
+def solve_for_H2_inclined_with_conductor(
+    conductor_name,
+    S,
+    dh,
+    H1,
+    T1,
+    T2,
+    w1=None,
+    w2=None,
+    epsilon_plast=0.0,
+):
+    """
+        Convenience wrapper for the inclined-span state equation using conductor data
+        from tabu_scripts.data.
+    
+        Parameters
+        ----------
+        conductor_name : str
+            Conductor name from tabu_scripts.data.CONDUCTORS.
+    
+        S : float
+            Horizontal span length [m].
+    
+        dh : float
+            Elevation difference h_R - h_L [m].
+    
+        H1 : float
+            Initial horizontal tension.
+    
+        T1, T2 : float
+            Initial and final temperatures [°C].
+    
+        w1 : float or None, default None
+            Initial unit weight override [kg/m].
+            If omitted, the built-in conductor weight is used.
+    
+        w2 : float or None, default None
+            Final unit weight override [kg/m].
+            If omitted, w1 is used.
+    
+        epsilon_plast : float, default 0.0
+            Plastic strain term.
+    
+        Returns
+        -------
+        float
+            Final horizontal tension H2.
+    """
+    props = conductor_state_data(conductor_name)
+
+    if w1 is None:
+        w1 = props["w"]
+    if w2 is None:
+        w2 = w1
+
+    return solve_for_H2_inclined(
+        S=S,
+        dh=dh,
+        H1=H1,
+        T1=T1,
+        T2=T2,
+        A_m2=props["A_m2"],
+        E_kg_per_m2=props["E_kg_per_m2"],
+        alpha=props["alpha"],
+        w1=w1,
+        w2=w2,
+        epsilon_plast=epsilon_plast,
+    )
+
+
+
+
+###################################################
+
 
 def sag_old(S, H, w):
     """
