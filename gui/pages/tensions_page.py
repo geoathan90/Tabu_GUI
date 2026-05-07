@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 )
 
 from gui.utils.conductor_catalog import conductor_names, get_raw_conductor_entry
-from tabu_scripts.tensions import solve_for_H2_inclined
+from tabu_scripts.tensions import solve_for_H2_with_conductor, solve_for_H2_inclined_with_conductor
 
 
 class TensionsPage(QWidget):
@@ -84,19 +84,19 @@ class TensionsPage(QWidget):
         form_layout.addWidget(QLabel("Υψομετρική Διαφορά Δh (m)"), 2, 0)
         form_layout.addWidget(self.dh_edit, 2, 1)
 
-        form_layout.addWidget(QLabel("Αρχική Οριζόντια Τάνυση H1"), 3, 0)
+        form_layout.addWidget(QLabel("Αρχική Οριζόντια Τάνυση Th1 (kg)"), 3, 0)
         form_layout.addWidget(self.h1_edit, 3, 1)
 
-        form_layout.addWidget(QLabel("Αρχική Θερμοκρασία T1 (°C)"), 4, 0)
+        form_layout.addWidget(QLabel("Αρχική Θερμοκρασία θ1 (°C)"), 4, 0)
         form_layout.addWidget(self.t1_edit, 4, 1)
 
-        form_layout.addWidget(QLabel("Τελική Θερμοκρασία T2 (°C)"), 5, 0)
+        form_layout.addWidget(QLabel("Τελική Θερμοκρασία θ2 (°C)"), 5, 0)
         form_layout.addWidget(self.t2_edit, 5, 1)
 
-        form_layout.addWidget(QLabel("Βάρος w1 (kg/m)"), 6, 0)
+        form_layout.addWidget(QLabel("Αρχικό Βάρος w1 (kg/m)"), 6, 0)
         form_layout.addWidget(self.w1_edit, 6, 1)
 
-        form_layout.addWidget(QLabel("Βάρος w2 (kg/m)"), 7, 0)
+        form_layout.addWidget(QLabel("Αρχικό Βάρος w2 (kg/m)"), 7, 0)
         form_layout.addWidget(self.w2_edit, 7, 1)
 
         form_layout.addWidget(self.solve_button, 8, 0, 1, 2)
@@ -142,43 +142,41 @@ class TensionsPage(QWidget):
         self.w1_edit.setText(f"{w_default}")
         self.w2_edit.setText(f"{w_default}")
 
-    def solve_clicked(self):
-        try:
-            conductor_name = self.conductor_combo.currentText()
-            raw_entry = get_raw_conductor_entry(
-                self.app_state["conductors"],
-                conductor_name,
+def solve_clicked(self):
+    try:
+        conductor_name = self.conductor_combo.currentText()
+
+        S = float(self.span_edit.text().strip())
+        dh = float(self.dh_edit.text().strip())
+        H1 = float(self.h1_edit.text().strip())
+        T1 = float(self.t1_edit.text().strip())
+        T2 = float(self.t2_edit.text().strip())
+        w1 = float(self.w1_edit.text().strip())
+        w2 = float(self.w2_edit.text().strip())
+
+        if abs(dh) < 0.01:
+            H2 = solve_for_H2_with_conductor(
+                conductor_name=conductor_name,
+                S=S,
+                H1=H1,
+                T1=T1,
+                T2=T2,
+                w1=w1,
+                w2=w2,
             )
-
-            S = float(self.span_edit.text().strip())
-            dh = float(self.dh_edit.text().strip())
-            H1 = float(self.h1_edit.text().strip())
-            T1 = float(self.t1_edit.text().strip())
-            T2 = float(self.t2_edit.text().strip())
-            w1 = float(self.w1_edit.text().strip())
-            w2 = float(self.w2_edit.text().strip())
-
-            A_m2 = float(raw_entry["A_cm2"]) / 10000.0
-            E_kg_per_m2 = float(raw_entry["E_kg_per_m2"])
-            alpha = float(raw_entry["alpha"])
-
-            H2 = solve_for_H2_inclined(
+        else:
+            H2 = solve_for_H2_inclined_with_conductor(
+                conductor_name=conductor_name,
                 S=S,
                 dh=dh,
                 H1=H1,
                 T1=T1,
                 T2=T2,
-                A_m2=A_m2,
-                E_kg_per_m2=E_kg_per_m2,
-                alpha=alpha,
                 w1=w1,
                 w2=w2,
             )
 
-            self.result_label.setText(
-                f"H2 = {H2:.3f}\n"
-                f"w1 = {w1:.4f} kg/m, w2 = {w2:.4f} kg/m"
-            )
+        self.result_label.setText(f"Th2 = {H2:.3f} kg")
 
-        except Exception as ex:
-            QMessageBox.critical(self, "Error", str(ex))
+    except Exception as ex:
+        QMessageBox.critical(self, "Error", str(ex))
